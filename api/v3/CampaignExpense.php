@@ -18,6 +18,7 @@
  * Get expenses
  *
  * function passed on to CRM_Financial_BAO_FinancialItem
+ * @throws CRM_Core_Exception
  */
 function civicrm_api3_campaign_expense_get($params) {
   $params['entity_table'] = 'civicrm_campaign';
@@ -27,6 +28,7 @@ function civicrm_api3_campaign_expense_get($params) {
   // extract the encoded expense_type_id from description
   if (isset($reply['values'])) {
     $values = $reply['values']; // copy array so we can modify while iterating
+    $expenseLabels = getExpenseTypeLabels();
     foreach ($values as $expense_id => $expense) {
       if (!empty($expense['description'])) {
         $parts = explode(":", $expense['description'], 2);
@@ -42,7 +44,7 @@ function civicrm_api3_campaign_expense_get($params) {
         $reply['values'][$expense_id]['description']     = '';
       }
       $reply['values'][$expense_id]['expense_type'] =
-      CRM_Core_OptionGroup::getLabel('campaign_expense_types', $reply['values'][$expense_id]['expense_type_id']);
+        $expenseLabels[$reply['values'][$expense_id]['expense_type_id']];
     }
   }
   return $reply;
@@ -170,4 +172,30 @@ function _civicrm_api3_campaign_expense_delete_spec(&$params) {
   $params['id'] = array(
     'title'        => ts('CampaignExpense ID', array('domain' => 'de.systopia.campaign')),
     'api.required' => 1);
+}
+
+/**
+ * @return array
+ * @throws CRM_Core_Exception
+ */
+function getExpenseTypeLabels(): array {
+  $key = __FUNCTION__;
+  $cache = Civi::cache('long')->get($key);
+  if (!isset($cache)) {
+    $labels = [];
+    $result = civicrm_api3('OptionValue', 'get', [
+      'sequential' => 1,
+      'return' => ["value", "label"],
+      'option_group_id' => "campaign_expense_types",
+    ]);
+    if ($result['count']) {
+      foreach ($result['values'] as $item) {
+        $labels[$item['value']] = $item['label'];
+      }
+    }
+    Civi::cache('long')->set($key, $labels);
+    return $labels;
+  }
+
+  return $cache;
 }
