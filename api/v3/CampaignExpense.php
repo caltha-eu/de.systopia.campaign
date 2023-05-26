@@ -49,7 +49,6 @@ function civicrm_api3_campaign_expense_get($params) {
 }
 
 
-
 /**
  * Get expenses sum
  * will sum up the expenses for the given campaign_id and all
