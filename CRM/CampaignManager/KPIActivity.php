@@ -115,7 +115,7 @@ class CRM_CampaignManager_KPIActivity {
   }
 
   public static function sequence() {
-    $query = "SELECT grouping FROM civicrm_campaign_config_status_sequence ORDER BY sequence";
+    $query = "SELECT `grouping` FROM civicrm_campaign_config_status_sequence ORDER BY sequence";
     $dao = CRM_Core_DAO::executeQuery($query);
     $result = [];
     while ($dao->fetch()) {
